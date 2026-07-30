@@ -6,7 +6,7 @@ import shutil
 app = FastAPI()
 
 UPLOAD_DIR="uploads"
-if not os.path.exist(UPLOAD_DIR):
+if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
 app.mount("/files",StaticFiles(directory=UPLOAD_DIR),name="files")
@@ -16,7 +16,7 @@ def upload_file(file:UploadFile=File(...)):
     filename = file.filename
     file_path=os.path.join(UPLOAD_DIR,filename)
     if not filename:
-        raise HTTPExpection(
+        raise HTTPException(
             status_code=400,
             detail="file not selected"
         )
@@ -27,11 +27,11 @@ def upload_file(file:UploadFile=File(...)):
         "filename":filename,
         "file_url":f"http://127.0.0.1:8000/files/{filename}"
     }
-@app.get('/filename')
+@app.get('/files/{filename}')
 def get_file(filename:str):
     file_path=os.path.join(UPLOAD_DIR, filename)
     if not os.path.exists(file_path):
-        raise HTTPExpection(
+        raise HTTPException(
             status_code=404,
             detail="file not found"
         )
@@ -41,5 +41,5 @@ def get_file(filename:str):
 @app.get("/")
 def home():
     return{
-        'message':'file uploaded api runnung'
+        'message':'file uploaded api running'
     }

@@ -22,4 +22,4 @@ def verify_token(token: str=Depends(oauth_schema)):
         return payload
     except:
         raise HTTPException(status_code=401,detail="invalid token")
-        
+

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends,HTTPException
+from fastapi import FastAPI, Depends,HTTPException,Query
 from sqlalchemy.orm import Session
 from database import engine,SessionLocal
 from database import Base
@@ -43,9 +43,24 @@ def create_blog(blog:schemas.BlogCreate, db:Session=Depends(get_db), user=Depend
     db.refresh(new_blog)
     return new_blog
 
-@app.get('/blogs',response_model=list[schemas.BlogResponse])
-def get_all(db:Session=Depends(get_db)):
-    return db.query(models.Blog).all()
+@app.get('/blogs')
+def get_all(page:int=1,
+            limit:int=5,
+            search:str=Query(default=""),
+            db:Session=Depends(get_db)):
+    query = db.query(models.Blog)
+    if search:
+        query=query.filter(models.Blog.title.ilike(f"%{search}%"))
+
+    total = query.count()
+    start=(page-1)*limit
+    blogs=query.offset(start).limit(limit).all()
+    return{
+        "page":page,
+        "limit":limit,
+        "total":total,
+        "data":blogs
+    }
 
 
 @app.get('/blogs/{id}',response_model=schemas.BlogResponse)
@@ -75,3 +90,4 @@ def delete_blog(id:int,db:Session=Depends(get_db),user=Depends(verify_token)):
     return {
         "message":"blog deleted successfully"
     }
+
